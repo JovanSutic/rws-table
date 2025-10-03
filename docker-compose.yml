@@ -1,0 +1,10 @@
+services:
+  rws-table-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    container_name: vite_rws_table_prod

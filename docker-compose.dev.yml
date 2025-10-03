@@ -1,0 +1,12 @@
+services:
+  rws-table-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "4173:4173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    container_name: vite_rws_table_dev
