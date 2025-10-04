@@ -18,27 +18,23 @@ import type { Column, VirtualizedTableProps } from "./table.types";
 
 const SkeletonRow = <T,>({
   columns,
-  rowHeight,
 }: {
   columns: Column<T>[];
-  rowHeight: number;
 }) => (
-  <Box
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      height: rowHeight,
-      borderBottom: 1,
-      borderColor: "divider",
-      px: 2,
-    }}
-  >
+  <TableRow>
     {columns.map((col, idx) => (
-      <Box key={idx} sx={{ width: col.width, px: 1 }}>
+      <TableCell
+        key={idx}
+        sx={{
+          width: col.width,
+          minWidth: col.width,
+          maxWidth: col.width,
+        }}
+      >
         <Skeleton variant="text" width="80%" />
-      </Box>
+      </TableCell>
     ))}
-  </Box>
+  </TableRow>
 );
 
 function VirtualizedTable<T = Record<string, unknown>>({
@@ -105,13 +101,14 @@ function VirtualizedTable<T = Record<string, unknown>>({
 
   if (loading) {
     return (
-      <TableContainer sx={containerStyle}>
+      <TableContainer sx={containerStyle} id="loading-table-container">
         <Table stickyHeader={stickyHeader} sx={tableStyle}>
           <TableHead>
             <TableRow>
               {columns.map((col, idx) => (
                 <TableCell
                   key={idx}
+                  align={col.align || "left"}
                   sx={{
                     width: col.width,
                     fontWeight: "bold",
@@ -126,7 +123,7 @@ function VirtualizedTable<T = Record<string, unknown>>({
           </TableHead>
           <TableBody>
             {Array.from({ length: 10 }).map((_, idx) => (
-              <SkeletonRow key={idx} columns={columns} rowHeight={rowHeight} />
+              <SkeletonRow key={idx} columns={columns} />
             ))}
           </TableBody>
         </Table>
@@ -147,6 +144,7 @@ function VirtualizedTable<T = Record<string, unknown>>({
   return (
     <TableContainer 
       ref={parentRef} 
+      id="virtual-table"
       sx={{
         ...containerStyle,
         overflow: 'auto',
@@ -188,7 +186,7 @@ function VirtualizedTable<T = Record<string, unknown>>({
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                   const row = data[virtualRow.index];
                   return (
-                    <Box
+                    <Box 
                       key={virtualRow.key}
                       onClick={() => onRowClick?.(row, virtualRow.index)}
                       className="table-row"
