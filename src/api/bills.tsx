@@ -52,7 +52,7 @@ function adaptBillData(billResult: BillResult): BillInternal {
 export async function fetchBills(
   params: FetchBillsParams
 ): Promise<BillsAdapted> {
-  const baseUrl = "https://api.oireachtas.ie/v1/legislation";
+  const baseUrl = `${import.meta.env.VITE_API_URL}/legislation`;
   const searchParams = buildSearchParams(params);
 
   const fullUrl = `${baseUrl}?${searchParams.toString()}`;

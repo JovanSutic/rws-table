@@ -11,7 +11,7 @@ import {
   type BillInternal,
   type BillStatusType,
 } from "../api/bill.types";
-import type { Column } from "../components.tsx/table.types";
+import type { Column } from "../components.tsx/types/table.types";
 import { billAllSearchSchema } from "../config/schema";
 import { fetchBills } from "../api/bills";
 import { useQuery } from "@tanstack/react-query";

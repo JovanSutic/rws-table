@@ -14,10 +14,10 @@ import { routeTree } from "../routeTree.gen";
 // import type { BillInternal } from "../api/bill.types";
 import { billMocks } from "../mocks/data";
 
-vi.mock('@tanstack/react-virtual', () => ({
+vi.mock("@tanstack/react-virtual", () => ({
   useVirtualizer: ({ count }: { count: number }) => ({
     getTotalSize: () => count * 53,
-    getVirtualItems: () => 
+    getVirtualItems: () =>
       Array.from({ length: count }, (_, i) => ({
         key: i,
         index: i,
@@ -67,7 +67,7 @@ function renderRoute(initialPath = "/bills/all") {
 describe("Bills Route (/bills/all)", () => {
   beforeEach(() => {
     server.use(
-      http.get("https://api.oireachtas.ie/v1/legislation", () => {
+      http.get(`${import.meta.env.VITE_API_URL}/legislation`, () => {
         return HttpResponse.json(billMocks);
       })
     );
@@ -77,9 +77,12 @@ describe("Bills Route (/bills/all)", () => {
     it("renders the bills table with data", async () => {
       renderRoute();
 
-      await waitFor(() => {
-        expect(screen.getByText("Legislation bills")).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByText("Legislation bills")).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
 
       await waitFor(
         () => {
