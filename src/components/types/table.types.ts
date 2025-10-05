@@ -20,4 +20,5 @@ export interface VirtualizedTableProps<T = Record<string, unknown>> {
   stickyHeader?: boolean;
   tableStyle?: SxProps;
   containerStyle?: SxProps;
+  virtualizationThreshold?: number;
 }

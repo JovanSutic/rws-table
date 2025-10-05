@@ -14,5 +14,5 @@ export const Route = createFileRoute('/')({
 })
 
 function RouteComponent() {
-  return <div>Hello "ovo je index"!</div>
+  return (<div>Index</div>)
 }

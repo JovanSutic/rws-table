@@ -11,7 +11,7 @@ import {
   useMatch,
   useNavigate,
 } from "@tanstack/react-router";
-import { billAllSearchSchema } from "../config/schema";
+import { billAllSearchSchema } from "../validations/schema";
 
 
 export const Route = createFileRoute("/bills")({
@@ -63,7 +63,6 @@ function RouteComponent() {
 
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={activeTabValue} aria-label="bill tabs">
-            {/* 3. Use Link components to change the search param */}
             <Tab
               label="All bills"
               value={0}

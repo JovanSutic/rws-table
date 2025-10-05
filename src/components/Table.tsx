@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   Table,
@@ -16,11 +16,7 @@ import {
 } from "@mui/material";
 import type { Column, VirtualizedTableProps } from "./types/table.types";
 
-const SkeletonRow = <T,>({
-  columns,
-}: {
-  columns: Column<T>[];
-}) => (
+const SkeletonRow = <T,>({ columns }: { columns: Column<T>[] }) => (
   <TableRow>
     {columns.map((col, idx) => (
       <TableCell
@@ -49,8 +45,11 @@ function VirtualizedTable<T = Record<string, unknown>>({
   stickyHeader = true,
   tableStyle = {},
   containerStyle = {},
+  virtualizationThreshold = 20,
 }: VirtualizedTableProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
+
+  const shouldVirtualize = data.length > virtualizationThreshold;
 
   const rowVirtualizer = useVirtualizer({
     count: data.length,
@@ -59,11 +58,25 @@ function VirtualizedTable<T = Record<string, unknown>>({
     overscan,
   });
 
+  const totalWidth = useMemo(
+    () =>
+      columns.reduce((sum, col) => {
+        const width =
+          typeof col.width === "number"
+            ? col.width
+            : parseInt(String(col.width)) || 0;
+        return sum + width;
+      }, 0),
+    [columns]
+  );
 
-  const totalWidth = columns.reduce((sum, col) => {
-    const width = typeof col.width === 'number' ? col.width : parseInt(String(col.width)) || 0;
-    return sum + width;
-  }, 0);
+  const mergedContainerStyle = useMemo(
+    () => ({
+      ...containerStyle,
+      overflow: "auto",
+    }),
+    [containerStyle]
+  );
 
   const renderCell = (
     column: Column<T>,
@@ -133,7 +146,7 @@ function VirtualizedTable<T = Record<string, unknown>>({
 
   if (data.length === 0) {
     return (
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: "12px", width: "100%", boxSizing: "border-box" }}>
         <Typography variant="body1" color="text.secondary" align="center">
           {emptyMessage}
         </Typography>
@@ -141,17 +154,88 @@ function VirtualizedTable<T = Record<string, unknown>>({
     );
   }
 
+  if (!shouldVirtualize) {
+    return (
+      <TableContainer
+        ref={parentRef}
+        id="simple-table"
+        sx={mergedContainerStyle}
+      >
+        <Table
+          stickyHeader={stickyHeader}
+          sx={{
+            tableLayout: "fixed",
+            width: totalWidth,
+          }}
+        >
+          <TableHead>
+            <TableRow>
+              {columns.map((col, idx) => (
+                <TableCell
+                  key={idx}
+                  align={col.align || "left"}
+                  sx={{
+                    width: col.width,
+                    minWidth: col.width,
+                    maxWidth: col.width,
+                    fontWeight: "bold",
+                    backgroundColor: "primary.main",
+                    color: "primary.contrastText",
+                  }}
+                >
+                  {col.label}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((row, rowIndex) => (
+              <TableRow
+                key={rowIndex}
+                onClick={() => onRowClick?.(row, rowIndex)}
+                sx={{
+                  cursor: onRowClick ? "pointer" : "default",
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                }}
+              >
+                {columns.map((col, colIdx) => (
+                  <TableCell
+                    key={colIdx}
+                    align={col.align || "left"}
+                    sx={{
+                      width: col.width,
+                      minWidth: col.width,
+                      maxWidth: col.width,
+                      paddingY: "6px",
+                    }}
+                  >
+                    {renderCell(col, row, rowIndex)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
   return (
-    <TableContainer 
-      ref={parentRef} 
+    <TableContainer
+      ref={parentRef}
       id="virtual-table"
-      sx={{
-        ...containerStyle,
-        overflow: 'auto',
-      }}
+      sx={mergedContainerStyle}
     >
       <Box sx={{ minWidth: totalWidth }}>
-        <Table stickyHeader={stickyHeader} sx={{ tableLayout: 'fixed', width: totalWidth }}>
+        <Table
+          stickyHeader={stickyHeader}
+          sx={{
+            tableLayout: "fixed",
+            width: totalWidth,
+          }}
+        >
           <TableHead>
             <TableRow>
               {columns.map((col, idx) => (
@@ -184,9 +268,10 @@ function VirtualizedTable<T = Record<string, unknown>>({
                 }}
               >
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  console.log("called");
                   const row = data[virtualRow.index];
                   return (
-                    <Box 
+                    <Box
                       key={virtualRow.key}
                       onClick={() => onRowClick?.(row, virtualRow.index)}
                       className="table-row"
@@ -226,7 +311,7 @@ function VirtualizedTable<T = Record<string, unknown>>({
                             whiteSpace: "nowrap",
                             borderBottom: 1,
                             borderColor: "divider",
-                            textWrap: 'auto',
+                            textWrap: "auto",
                             transition: "background-color 0.2s",
                             ".table-row:hover &": {
                               backgroundColor: "action.hover",

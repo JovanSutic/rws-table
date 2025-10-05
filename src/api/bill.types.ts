@@ -37,9 +37,9 @@ export interface DateEntry {
 }
 
 export interface ProgressEvent {
-  chamber: Chamber;
+  chamber: Chamber | null;
   dates: DateEntry[];
-  eventURI: string;
+  eventURI?: string;
   showAs: string;
   uri: string;
   house?: Chamber;
@@ -156,4 +156,10 @@ export interface BillResponse {
 export interface BillsAdapted {
   count: BillHeadCounts;
   results: BillInternal[];
+}
+
+export interface FetchBillsParams {
+  page: number;
+  status?: BillStatusType | "";
+  limit?: number;
 }

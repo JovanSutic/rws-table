@@ -1,4 +1,6 @@
-export const billMocks = {
+import type { BillResponse } from "../api/bill.types";
+
+export const billMocks: BillResponse = {
   head: {
     counts: {
       billCount: 345,
