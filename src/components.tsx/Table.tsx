@@ -14,7 +14,7 @@ import {
   Alert,
   AlertTitle,
 } from "@mui/material";
-import type { Column, VirtualizedTableProps } from "./table.types";
+import type { Column, VirtualizedTableProps } from "./types/table.types";
 
 const SkeletonRow = <T,>({
   columns,
@@ -226,6 +226,7 @@ function VirtualizedTable<T = Record<string, unknown>>({
                             whiteSpace: "nowrap",
                             borderBottom: 1,
                             borderColor: "divider",
+                            textWrap: 'auto',
                             transition: "background-color 0.2s",
                             ".table-row:hover &": {
                               backgroundColor: "action.hover",

@@ -1,10 +1,14 @@
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { billMocks } from "./data";
 
+const isTestEnvironment = import.meta.env.MODE === "test";
+
 export const handlers = [
-  http.get("https://api.oireachtas.ie/v1/legislation", async () => {
+  http.get(`${import.meta.env.VITE_API_URL}/legislation`, async () => {
     try {
-    //   await delay(700);
+      if (!isTestEnvironment) {
+        await delay(700);
+      }
       return HttpResponse.json(billMocks);
     } catch (error) {
       console.error("Failed to parse request:", error);
