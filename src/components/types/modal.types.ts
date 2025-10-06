@@ -4,7 +4,6 @@ export interface ModalProps {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
-  fullScreenBreakpoint?: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 export interface ModalTitleProps {

@@ -3,23 +3,16 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import { useTheme } from "@mui/material/styles";
-import type { ModalActionsProps, ModalContentProps, ModalProps, ModalTitleProps } from "./types/modal.types";
+import type {
+  ModalActionsProps,
+  ModalContentProps,
+  ModalProps,
+  ModalTitleProps,
+} from "./types/modal.types";
 
-
-
-function Modal({ open, onClose, children, fullScreenBreakpoint = "md" }: ModalProps) {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down(fullScreenBreakpoint));
-
+function Modal({ open, onClose, children }: ModalProps) {
   return (
-    <Dialog
-      fullScreen={fullScreen}
-      open={open}
-      onClose={onClose}
-      aria-labelledby="modal-title"
-    >
+    <Dialog open={open} onClose={onClose} aria-labelledby="modal-title">
       {children}
     </Dialog>
   );

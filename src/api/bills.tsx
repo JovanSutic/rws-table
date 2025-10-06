@@ -1,16 +1,10 @@
 import type {
   BillResponse,
-  BillStatusType,
   BillInternal,
   BillResult,
   BillsAdapted,
+  FetchBillsParams,
 } from "../api/bill.types";
-
-interface FetchBillsParams {
-  page: number;
-  status?: BillStatusType | "";
-  limit?: number;
-}
 
 function buildSearchParams({
   page,
@@ -49,40 +43,99 @@ function adaptBillData(billResult: BillResult): BillInternal {
   };
 }
 
-export async function fetchBills(
+export async function getBills(
   params: FetchBillsParams
 ): Promise<BillsAdapted> {
   const baseUrl = `${import.meta.env.VITE_API_URL}/legislation`;
   const searchParams = buildSearchParams(params);
-
   const fullUrl = `${baseUrl}?${searchParams.toString()}`;
 
-  try {
-    const response = await fetch(fullUrl);
+  const response = await fetch(fullUrl);
 
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch bills. HTTP Status: ${response.status} (${response.statusText}). URL: ${fullUrl}`
-      );
-    }
-
-    const data: BillResponse = await response.json();
-
-    const adaptedData: BillInternal[] = data.results.map(
-      (item) => adaptBillData(item as unknown as BillResult)
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch bills. HTTP Status: ${response.status} (${response.statusText})`
     );
-
-    return {
-      count: data.head.counts,
-      results: adaptedData,
-    };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "An unknown network or processing error occurred.";
-
-    console.error(`Error during fetch for ${fullUrl}:`, error);
-    throw new Error(`Data retrieval failed: ${errorMessage}`);
   }
+
+  const data: BillResponse = await response.json();
+
+  const adaptedData: BillInternal[] = data.results.map((item) =>
+    adaptBillData(item as unknown as BillResult)
+  );
+
+  return {
+    count: data.head.counts,
+    results: adaptedData,
+  };
+}
+
+export async function getFavoriteBills(
+  bills: BillInternal[]
+): Promise<BillsAdapted> {
+  const baseUrl = `${import.meta.env.VITE_API_URL}/legislation/favorite`;
+
+  const response = await fetch(baseUrl);
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch bills. HTTP Status: ${response.status} (${response.statusText})`
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to add favorite");
+  }
+
+  const data: BillInternal[] = bills;
+
+  return {
+    count: {
+      resultCount: data.length,
+      billCount: data.length,
+    },
+    results: data,
+  };
+}
+
+export async function postAddFavoriteBill(
+  bill: BillInternal
+): Promise<BillInternal> {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/legislation/favorite/add`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bill),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to add favorite");
+  }
+
+  return response.json();
+}
+
+export async function postRemoveFavoriteBill(
+  bill: BillInternal
+): Promise<BillInternal> {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/legislation/favorite/remove`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bill),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to remove favorite");
+  }
+
+  return response.json();
 }
