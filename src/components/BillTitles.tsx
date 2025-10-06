@@ -39,7 +39,7 @@ function BillTitles({ bill }: { bill: BillInternal | null }) {
     tabs.find((t) => t.value === activeTab)?.content || "Title not provided.";
 
   return (
-    <Box>
+    <Box sx={{ width: {xs: "100%", md:"340px"} }}>
       <Tabs
         value={activeTab}
         onChange={(_, value) => setActiveTab(value)}
