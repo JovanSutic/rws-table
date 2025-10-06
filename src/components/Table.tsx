@@ -103,7 +103,7 @@ function VirtualizedTable<T = Record<string, unknown>>({
 
   if (error) {
     return (
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: "12px", width: "100%", boxSizing: "border-box" }}>
         <Alert severity="error">
           <AlertTitle>Error</AlertTitle>
           {error}
@@ -268,7 +268,6 @@ function VirtualizedTable<T = Record<string, unknown>>({
                 }}
               >
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                  console.log("called");
                   const row = data[virtualRow.index];
                   return (
                     <Box

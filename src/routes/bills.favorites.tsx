@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFavoritesStore } from "../store/favorites";
-import { Alert, Box, Snackbar } from "@mui/material";
+import { Box } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import VirtualizedTable from "../components/Table";
 import { createBillColumns } from "../components/utils/createBillColumns";
@@ -16,9 +16,10 @@ export const Route = createFileRoute("/bills/favorites")({
 
 function RouteComponent() {
   const [selectedRow, setSelectedRow] = useState<BillInternal | null>(null);
-  const { isFavorite } = useFavoritesStore();
+  const { isFavorite, favoriteVersion } = useFavoritesStore();
 
-  const { isLoading, billsData, dataUpdatedAt } = useFavoriteBillsQuery();
+  const { isLoading, billsData, dataUpdatedAt, error } =
+    useFavoriteBillsQuery();
 
   const {
     favoriteModalOpen,
@@ -37,10 +38,13 @@ function RouteComponent() {
     ? isFavorite(selectedRow.id)
     : false;
 
-  const handleFavoriteToggle = useCallback((bill: BillInternal) => {
-    setSelectedRow(bill);
-    setFavoriteModalOpen(true);
-  }, [setFavoriteModalOpen]);
+  const handleFavoriteToggle = useCallback(
+    (bill: BillInternal) => {
+      setSelectedRow(bill);
+      setFavoriteModalOpen(true);
+    },
+    [setFavoriteModalOpen]
+  );
 
   const handleFavoriteConfirm = useCallback(() => {
     if (!selectedRow) return;
@@ -57,7 +61,8 @@ function RouteComponent() {
     () => (
       <Box
         sx={{
-          width: "100%",
+          width: { xs: "100%", md: "924px" },
+          margin: "auto",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -65,13 +70,14 @@ function RouteComponent() {
           paddingTop: "20px",
           paddingBottom: "32px",
           boxSizing: "border-box",
-          gap: "20px",
+          gap: "16px",
         }}
       >
         <VirtualizedTable
           data={billsData?.results || []}
           loading={isLoading}
           columns={columns}
+          error={error?.message}
           containerStyle={{
             overflow: "auto",
             border: 1,
@@ -82,7 +88,7 @@ function RouteComponent() {
         />
       </Box>
     ),
-    [dataUpdatedAt]
+    [dataUpdatedAt, isLoading, favoriteVersion]
   );
 
   return (
@@ -101,23 +107,18 @@ function RouteComponent() {
         open={snackOpen}
         onClose={() => setSnackOpen(false)}
         bill={snackBill}
-        action={"removed"}
+        action={selectedRowIsFavorite ? "added" : "removed"}
+        severity="success"
       />
 
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      <FavoritesSnack
         open={errorSnackOpen}
-        autoHideDuration={5000}
         onClose={() => setErrorSnackOpen(false)}
-      >
-        <Alert
-          onClose={() => setErrorSnackOpen(false)}
-          severity="error"
-          sx={{ width: "100%" }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
+        bill={snackBill}
+        severity="error"
+        autoHideDuration={5000}
+        message={errorMessage}
+      />
 
       {favoritesContent}
     </>

@@ -5,7 +5,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import { createFileRoute } from "@tanstack/react-router";
 import VirtualizedTable from "../components/Table";
-import { Button, Pagination, Alert, Snackbar } from "@mui/material";
+import { Button, Pagination } from "@mui/material";
 import {
   billStatus,
   type BillInternal,
@@ -36,7 +36,7 @@ function RouteComponent() {
   const navigate = Route.useNavigate();
   const pageCount = 10;
 
-  const { isLoading, billsData, dataUpdatedAt } = useBillsQuery();
+  const { isLoading, billsData, dataUpdatedAt, error } = useBillsQuery();
 
   const {
     favoriteModalOpen,
@@ -78,10 +78,13 @@ function RouteComponent() {
     });
   };
 
-  const handleFavoriteToggle = useCallback((bill: BillInternal) => {
-    setSelectedRow(bill);
-    setFavoriteModalOpen(true);
-  }, [setFavoriteModalOpen]);
+  const handleFavoriteToggle = useCallback(
+    (bill: BillInternal) => {
+      setSelectedRow(bill);
+      setFavoriteModalOpen(true);
+    },
+    [setFavoriteModalOpen]
+  );
 
   const handleFavoriteConfirm = useCallback(() => {
     if (!selectedRow) return;
@@ -131,7 +134,7 @@ function RouteComponent() {
           paddingTop: "20px",
           paddingBottom: "32px",
           boxSizing: "border-box",
-          gap: "16px",
+          gap: "20px",
         }}
       >
         <Box
@@ -147,7 +150,7 @@ function RouteComponent() {
             <Select
               labelId="bill-status-label"
               id="bill-status"
-              disabled={isLoading}
+              disabled={isLoading || Boolean(error)}
               value={selectStatus}
               label="Bill status"
               onChange={(e) =>
@@ -169,6 +172,7 @@ function RouteComponent() {
           data={billsData?.results || []}
           loading={isLoading}
           columns={columns}
+          error={error?.message}
           onRowClick={(row) => {
             setSelectedRow(row);
             setTitleModalOpen(true);
@@ -178,6 +182,7 @@ function RouteComponent() {
         <Pagination
           variant="outlined"
           color="primary"
+          disabled={isLoading || Boolean(error)}
           count={Math.ceil(
             (billsData?.count.billCount || pageCount) / pageCount
           )}
@@ -216,22 +221,17 @@ function RouteComponent() {
         onClose={() => setSnackOpen(false)}
         bill={snackBill}
         action={selectedRowIsFavorite ? "added" : "removed"}
+        severity="success"
       />
 
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      <FavoritesSnack
         open={errorSnackOpen}
-        autoHideDuration={5000}
         onClose={() => setErrorSnackOpen(false)}
-      >
-        <Alert
-          onClose={() => setErrorSnackOpen(false)}
-          severity="error"
-          sx={{ width: "100%" }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
+        bill={snackBill}
+        severity="error"
+        autoHideDuration={5000}
+        message={errorMessage}
+      />
 
       {billsContent}
     </>

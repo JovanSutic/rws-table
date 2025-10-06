@@ -13,7 +13,6 @@ import {
 } from "@tanstack/react-router";
 import { billAllSearchSchema } from "../validations/schema";
 
-
 export const Route = createFileRoute("/bills")({
   beforeLoad: ({ location }) => {
     if (location.pathname === "/bills") {
@@ -49,15 +48,22 @@ function RouteComponent() {
     <>
       <Box
         sx={{
-          width: "100%",
+          width: { xs: "100%", md: "924px" },
+          margin: "auto",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: "20px",
-          gap: "20px",
+          paddingX: "4px",
+          paddingTop: "12px",
+          boxSizing: "border-box",
+          gap: "20px"
         }}
       >
-        <Typography variant="h4" gutterBottom>
+        <Typography
+          variant="h1"
+          gutterBottom
+          sx={{ fontSize: "28px", fontWeight: 600 }}
+        >
           Legislation bills
         </Typography>
 

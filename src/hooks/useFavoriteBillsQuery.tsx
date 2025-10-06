@@ -10,7 +10,6 @@ export const useFavoriteBillsQuery = () => {
     isLoading,
     dataUpdatedAt,
     error,
-    isError,
   } = useQuery({
     queryKey: ["bills-favorites", favoriteVersion],
     queryFn: () => getFavoriteBills(favorites),
@@ -18,5 +17,5 @@ export const useFavoriteBillsQuery = () => {
     enabled: favorites.length > 0,
   });
 
-  return { billsData, isLoading, dataUpdatedAt, error, isError };
+  return { billsData, isLoading, dataUpdatedAt, error };
 };

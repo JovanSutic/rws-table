@@ -17,6 +17,7 @@ export const createBillColumns = (
     align: "right",
     render: (_, row) => {
       const isInFavorites = isFavorite ? isFavorite(row.id) : false;
+      const testDiff = isInFavorites ? "remove" : "add";
       
       return (
         <IconButton
@@ -25,6 +26,7 @@ export const createBillColumns = (
             handleFavoriteToggle(row);
           }}
           title={isInFavorites ? "Remove from favorites" : "Add to favorites"}
+          data-testid={`icon-${row.id}-${testDiff}`}
         >
           <Icon color={isInFavorites ? "error" : "primary"}>
             {isInFavorites ? "remove" : "add"}

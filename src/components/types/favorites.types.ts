@@ -4,8 +4,10 @@ export interface FavoritesSnackbarProps {
   open: boolean;
   onClose: () => void;
   bill: BillInternal | null;
-  action: "added" | "removed";
+  action?: "added" | "removed";
   autoHideDuration?: number;
+  message?: string;
+  severity?: "success" | "info" | "error";
 }
 
 export interface FavoritesModalProps {

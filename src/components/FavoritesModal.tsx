@@ -34,7 +34,7 @@ export default function FavoritesModal({
       <Modal.Title>{title}</Modal.Title>
       <Modal.Content text>{message}</Modal.Content>
       <Modal.Actions>
-        <Button onClick={onClose} loading={loading}>
+        <Button onClick={onClose} loading={loading} data-testid="favorites-modal-cancel-btn">
           Cancel
         </Button>
         <Button
@@ -42,6 +42,7 @@ export default function FavoritesModal({
           loading={loading}
           variant="contained"
           color={confirmColor}
+          data-testid="favorites-modal-confirm-btn"
         >
           {confirmText}
         </Button>

@@ -1,31 +1,18 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-// import userEvent from "@testing-library/user-event";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createMemoryHistory,
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/node";
 import { routeTree } from "../routeTree.gen";
-// import type { BillInternal } from "../api/bill.types";
-import { billMocks } from "../mocks/data";
-
-vi.mock("@tanstack/react-virtual", () => ({
-  useVirtualizer: ({ count }: { count: number }) => ({
-    getTotalSize: () => count * 53,
-    getVirtualItems: () =>
-      Array.from({ length: count }, (_, i) => ({
-        key: i,
-        index: i,
-        start: i * 53,
-        size: 53,
-      })),
-  }),
-}));
+import { billMocks, favoriteMocks } from "../mocks/data";
+import { useFavoritesStore } from "../store/favorites";
 
 function createTestRouter(initialPath = "/bills/all") {
   const queryClient = new QueryClient({
@@ -73,63 +60,231 @@ describe("Bills Route (/bills/all)", () => {
     );
   });
 
-  describe("Initial Render", () => {
-    it("renders the bills table with data", async () => {
+  describe("Page main functionalities", () => {
+    it("user see the bills data in the table", async () => {
       renderRoute();
-
       await waitFor(
         () => {
           expect(screen.getByText("Legislation bills")).toBeInTheDocument();
-        },
-        { timeout: 5000 }
-      );
-
-      await waitFor(
-        () => {
+          expect(screen.getByText("Number")).toBeInTheDocument();
+          expect(screen.getByText("132")).toBeInTheDocument();
+          expect(screen.getByText("129")).toBeInTheDocument();
+          expect(screen.getAllByText("Public").length).toBe(10);
+          expect(screen.getAllByText("Defeated").length).toBe(10);
+          expect(screen.getAllByText("Unknown Sponsor").length).toBe(10);
           expect(
             screen.queryByTestId("loading-table-container")
           ).not.toBeInTheDocument();
         },
         { timeout: 5000 }
       );
+    });
 
-      // screen.debug(undefined, Infinity);
+    it("user should open a detail modal when a bill row is clicked", async () => {
+      const user = userEvent.setup();
+      renderRoute();
+      await waitFor(() => {
+        expect(screen.getByText("132")).toBeInTheDocument();
+      });
+      const billRowElement = screen.getByText("132");
+      await user.click(billRowElement);
 
-      expect(screen.getByText("Legislation bills")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "Protection of the Public Interest from Tobacco Lobbying Bill 2013"
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("user is able to add and remove bills from favorites", async () => {
+      const user = userEvent.setup();
+      renderRoute();
+      await waitFor(() => {
+        expect(screen.getByTestId("icon-132-2013-add")).toBeInTheDocument();
+      });
+      const iconAddElement = screen.getByTestId("icon-132-2013-add");
+      await user.click(iconAddElement);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Would you like to save bill 132 to your favorites?")
+        ).toBeInTheDocument();
+        expect(screen.getByText("Add to Favorites")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("favorites-modal-cancel-btn")
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId("favorites-modal-confirm-btn")
+        ).toBeInTheDocument();
+      });
+
+      const confirmBtn = screen.getByTestId("favorites-modal-confirm-btn");
+      await user.click(confirmBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Bill 132 saved to favorites successfully.")
+        ).toBeInTheDocument();
+        expect(screen.getByTestId("icon-132-2013-remove")).toBeInTheDocument();
+      });
+
+      const iconRemoveElement = screen.getByTestId("icon-132-2013-remove");
+      await user.click(iconRemoveElement);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "Would you like to remove bill 132 from your favorites?"
+          )
+        ).toBeInTheDocument();
+        expect(screen.getByText("Remove from Favorites")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("favorites-modal-cancel-btn")
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId("favorites-modal-confirm-btn")
+        ).toBeInTheDocument();
+      });
+
+      const confirmRemoveBtn = screen.getByTestId(
+        "favorites-modal-confirm-btn"
+      );
+      await user.click(confirmRemoveBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Bill 132 removed from favorites successfully.")
+        ).toBeInTheDocument();
+        expect(screen.getByTestId("icon-132-2013-add")).toBeInTheDocument();
+      });
+    });
+
+    it("user is shown an error snack when API fails to add a favorite", async () => {
+      server.use(
+        http.post(
+          `${import.meta.env.VITE_API_URL}/legislation/favorite/add`,
+          () => {
+            return HttpResponse.json(
+              { error: "Internal Server Error" },
+              { status: 500 }
+            );
+          }
+        )
+      );
+
+      const user = userEvent.setup();
+      renderRoute();
+
+      await waitFor(() => {
+        expect(screen.getByTestId("icon-132-2013-add")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByTestId("icon-132-2013-add"));
+
+      await waitFor(() => {
+        expect(screen.getByText("Add to Favorites")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByTestId("favorites-modal-confirm-btn"));
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText("Failed to add favorite")
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
     });
   });
-  //   it("returns filtered results when status is provided", async () => {
+});
 
-  //     server.use(
-  //       http.get("*/api/bills", ({ request }) => {
-  //         const url = new URL(request.url);
-  //         const status = url.searchParams.get("status");
+describe("Bills Route (/bills/favorites)", () => {
+  beforeEach(() => {
+    const favoritesMap = Object.fromEntries(
+      favoriteMocks.results.map((bill) => [bill.id, true])
+    );
+    useFavoritesStore.setState({
+      favorites: favoriteMocks.results,
+      favoriteVersion: 1,
+      favoritesMap: favoritesMap as Record<string, true>,
+    });
 
-  //         if (status === "Passed") {
-  //           return HttpResponse.json(filteredData);
-  //         }
+    server.use(
+      http.get(`${import.meta.env.VITE_API_URL}/legislation/favorite`, () => {
+        return HttpResponse.json(favoriteMocks);
+      })
+    );
+  });
 
-  //         return HttpResponse.json(billMocks);
-  //       })
-  //     );
+  describe("Favorites page functionalities", () => {
+    it("user can see their favorite bills", async () => {
+      renderRoute("/bills/favorites");
 
-  //     const user = userEvent.setup();
-  //     renderRoute();
+      await waitFor(
+        () => {
+          expect(screen.getByText("Legislation bills")).toBeInTheDocument();
+          expect(screen.getByText("129")).toBeInTheDocument();
+          expect(screen.getByText("132")).toBeInTheDocument();
+          expect(screen.getAllByText("Defeated").length).toBe(2);
+          expect(screen.getAllByText("Unknown Sponsor").length).toBe(2);
+          expect(
+            screen.queryByTestId("loading-table-container")
+          ).not.toBeInTheDocument();
+          expect(
+            screen.getByTestId("icon-132-2013-remove")
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
+    });
 
-  //     await waitFor(() => {
-  //       expect(screen.getByText("John Doe")).toBeInTheDocument();
-  //     });
+    it("user can remove a bill from favorites", async () => {
+      const user = userEvent.setup();
+      renderRoute("/bills/favorites");
 
-  //     const statusSelect = screen.getByLabelText("Bill status");
-  //     await user.click(statusSelect);
+      await waitFor(
+        () => {
+          expect(screen.getByText("Legislation bills")).toBeInTheDocument();
+          expect(screen.getByText("132")).toBeInTheDocument();
+          expect(
+            screen.getByTestId("icon-132-2013-remove")
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
 
-  //     const passedOption = screen.getByRole("option", { name: "Passed" });
-  //     await user.click(passedOption);
+      await user.click(screen.getByTestId("icon-132-2013-remove"));
 
-  //     await waitFor(() => {
-  //       expect(screen.getByText("Jane Smith")).toBeInTheDocument();
-  //       expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
-  //     });
-  //   });
-  // });
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "Would you like to remove bill 132 from your favorites?"
+          )
+        ).toBeInTheDocument();
+        expect(screen.getByText("Remove from Favorites")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("favorites-modal-cancel-btn")
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId("favorites-modal-confirm-btn")
+        ).toBeInTheDocument();
+      });
+
+      const confirmRemoveBtn = screen.getByTestId(
+        "favorites-modal-confirm-btn"
+      );
+      await user.click(confirmRemoveBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Bill 132 removed from favorites successfully.")
+        ).toBeInTheDocument();
+        expect(screen.getAllByText("Defeated").length).toBe(1);
+        expect(screen.getAllByText("Unknown Sponsor").length).toBe(1);
+      });
+    });
+  });
 });

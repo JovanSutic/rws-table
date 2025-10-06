@@ -1,4 +1,4 @@
-import type { BillResponse } from "../api/bill.types";
+import type { BillResponse, BillsAdapted } from "../api/bill.types";
 
 export const billMocks: BillResponse = {
   head: {
@@ -2771,6 +2771,37 @@ export const billMocks: BillResponse = {
         billYearSort: 2016,
       },
       contextDate: "2016-12-15",
+    },
+  ],
+};
+
+export const favoriteMocks: BillsAdapted = {
+  count: {
+    resultCount: 2,
+    billCount: 2,
+  },
+  results: [
+    {
+      id: "132-2013",
+      billNumber: 132,
+      billType: "Public",
+      billStatus: "Defeated",
+      billSponsor: "Unknown Sponsor",
+      titleGa:
+        "An Bille um Leas an Phobail a Chosaint ar Stocaireacht Tobac, 2013",
+      titleEn:
+        "Protection of the Public Interest from Tobacco Lobbying Bill 2013",
+      favorites: "",
+    },
+    {
+      id: "129-2021",
+      billNumber: 129,
+      billType: "Public",
+      billStatus: "Defeated",
+      billSponsor: "Unknown Sponsor",
+      titleGa: "An Bille um Sheirbhísí Maoine (Clár um Praghsanna Talún), 2021",
+      titleEn: "Property Services (Land Price Register) Bill 2021",
+      favorites: "",
     },
   ],
 };

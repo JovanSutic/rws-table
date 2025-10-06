@@ -9,6 +9,7 @@ export const useBillsQuery = () => {
     data: billsData,
     isLoading,
     dataUpdatedAt,
+    error,
   } = useQuery({
     queryKey: ["bills", page, status],
     queryFn: () =>
@@ -19,5 +20,5 @@ export const useBillsQuery = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  return { billsData, isLoading, dataUpdatedAt };
+  return { billsData, isLoading, dataUpdatedAt, error };
 };
