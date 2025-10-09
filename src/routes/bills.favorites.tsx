@@ -38,23 +38,20 @@ function RouteComponent() {
     ? isFavorite(selectedRow.id)
     : false;
 
-  const handleFavoriteToggle = useCallback(
-    (bill: BillInternal) => {
-      setSelectedRow(bill);
-      setFavoriteModalOpen(true);
-    },
-    [setFavoriteModalOpen]
-  );
+  const handleFavoriteToggle = useCallback((bill: BillInternal) => {
+    setSelectedRow(bill);
+    setFavoriteModalOpen(true);
+  }, []);
 
   const handleFavoriteConfirm = useCallback(() => {
     if (!selectedRow) return;
 
     removeFavoriteMutation.mutate(selectedRow);
-  }, [removeFavoriteMutation, selectedRow]);
+  }, [selectedRow?.id]);
 
   const columns = useMemo(
     () => createBillColumns(handleFavoriteToggle, () => true),
-    [handleFavoriteToggle]
+    []
   );
 
   const favoritesContent = useMemo(
@@ -104,20 +101,17 @@ function RouteComponent() {
       />
 
       <FavoritesSnack
-        open={snackOpen}
-        onClose={() => setSnackOpen(false)}
-        bill={snackBill}
-        action={selectedRowIsFavorite ? "added" : "removed"}
-        severity="success"
-      />
-
-      <FavoritesSnack
-        open={errorSnackOpen}
-        onClose={() => setErrorSnackOpen(false)}
-        bill={snackBill}
-        severity="error"
-        autoHideDuration={5000}
-        message={errorMessage}
+        open={snackOpen || errorSnackOpen}
+        onClose={() => {
+          setSnackOpen(false);
+          setErrorSnackOpen(false);
+        }}
+        message={
+          errorMessage ||
+          `Bill ${snackBill?.billNumber} ${selectedRowIsFavorite ? "saved to" : "removed from"} favorites successfully.`
+        }
+        severity={errorSnackOpen ? "error" : "success"}
+        autoHideDuration={errorSnackOpen ? 5000 : undefined}
       />
 
       {favoritesContent}

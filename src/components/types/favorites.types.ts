@@ -3,8 +3,6 @@ import type { BillInternal } from "../../api/bill.types";
 export interface FavoritesSnackbarProps {
   open: boolean;
   onClose: () => void;
-  bill: BillInternal | null;
-  action?: "added" | "removed";
   autoHideDuration?: number;
   message?: string;
   severity?: "success" | "info" | "error";
