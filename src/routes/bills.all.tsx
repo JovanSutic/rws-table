@@ -78,47 +78,24 @@ function RouteComponent() {
     });
   };
 
-  const handleFavoriteToggle = useCallback(
-    (bill: BillInternal) => {
-      setSelectedRow(bill);
-      setFavoriteModalOpen(true);
-    },
-    [setFavoriteModalOpen]
-  );
+  const handleFavoriteToggle = useCallback((bill: BillInternal) => {
+    setSelectedRow(bill);
+    setFavoriteModalOpen(true);
+  }, []);
 
   const handleFavoriteConfirm = useCallback(() => {
     if (!selectedRow) return;
 
-    if (selectedRowIsFavorite) {
+    if (isFavorite(selectedRow.id)) {
       removeFavoriteMutation.mutate(selectedRow);
     } else {
       addFavoriteMutation.mutate(selectedRow);
     }
-  }, [
-    selectedRow,
-    selectedRowIsFavorite,
-    addFavoriteMutation,
-    removeFavoriteMutation,
-  ]);
-
-  const handleModalClose = useCallback(() => {
-    setFavoriteModalOpen(false);
-  }, [setFavoriteModalOpen]);
-
-  const tableContainerStyle = useMemo(
-    () => ({
-      overflow: "auto",
-      border: 1,
-      borderColor: "divider",
-      boxSizing: "border-box",
-      width: { xs: "100%", md: "fit-content" },
-    }),
-    []
-  );
+  }, [selectedRow?.id]);
 
   const columns = useMemo(
     () => createBillColumns(handleFavoriteToggle, isFavorite),
-    [handleFavoriteToggle, isFavorite]
+    []
   );
 
   const billsContent = useMemo(
@@ -177,7 +154,13 @@ function RouteComponent() {
             setSelectedRow(row);
             setTitleModalOpen(true);
           }}
-          containerStyle={tableContainerStyle}
+          containerStyle={{
+            overflow: "auto",
+            border: 1,
+            borderColor: "divider",
+            boxSizing: "border-box",
+            width: { xs: "100%", md: "fit-content" },
+          }}
         />
         <Pagination
           variant="outlined"
@@ -208,7 +191,7 @@ function RouteComponent() {
 
       <FavoritesModal
         open={favoriteModalOpen}
-        onClose={handleModalClose}
+        onClose={() => setFavoriteModalOpen(false)}
         isFavorite={selectedRowIsFavorite}
         bill={selectedRow}
         onConfirm={handleFavoriteConfirm}
@@ -217,20 +200,14 @@ function RouteComponent() {
       />
 
       <FavoritesSnack
-        open={snackOpen}
-        onClose={() => setSnackOpen(false)}
-        bill={snackBill}
-        action={selectedRowIsFavorite ? "added" : "removed"}
-        severity="success"
-      />
-
-      <FavoritesSnack
-        open={errorSnackOpen}
-        onClose={() => setErrorSnackOpen(false)}
-        bill={snackBill}
-        severity="error"
-        autoHideDuration={5000}
-        message={errorMessage}
+        open={snackOpen || errorSnackOpen}
+        onClose={() => {
+          setSnackOpen(false);
+          setErrorSnackOpen(false);
+        }}
+        message={errorMessage || `Bill ${snackBill?.billNumber} ${selectedRowIsFavorite ? "saved to" : "removed from"} favorites successfully.`}
+        severity={errorSnackOpen ? "error" : "success"}
+        autoHideDuration={errorSnackOpen ? 5000 : undefined}
       />
 
       {billsContent}
